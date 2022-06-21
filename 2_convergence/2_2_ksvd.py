@@ -4,7 +4,6 @@ import scipy.io
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-from scipy.io import loadmat
 from omp import run_omp
 from utils import clear_dict, optimize_atom, normalize_dictionary, count_matching_atoms, colnorms_squared
 from rearrange_dictionary import permute_scale_dictionary
@@ -21,7 +20,6 @@ def main():
     for trial in range(1,num_trials+1):
         print(f"Trial {trial}/{num_trials}")
         data_load_path = '2_convergence/dataset/trial_'+str(trial)+'/'
-        # init_dict_load_path = '2_convergence/results/ksvd_trial_'+str(trial)+'/'
         save_path = '2_convergence/results/ksvd_trial_'+str(trial)+'/'
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
@@ -35,7 +33,6 @@ def main():
         perm = torch.randperm(len(data_ids)).to(DEVICE)
         use_idx = list(data_ids[perm[:dict_size]])
         init_dictionary_norm = gen_data[:,use_idx]
-        # init_dictionary_norm = torch.Tensor(loadmat(init_dict_load_path+'init_dict.mat')['D']).to(DEVICE)
         init_dictionary_norm /= torch.linalg.norm(init_dictionary_norm,axis=0)
         torch.save(init_dictionary_norm,save_path+'init_dict.pt')
 
