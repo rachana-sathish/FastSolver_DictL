@@ -12,7 +12,7 @@ def normalize_dictionary(dictionary):
 
 def colnorms_squared(data,device):
     '''
-    Add description
+    Normalise data across columns
     '''
     norm_data = torch.zeros(data.shape[1]).to(device)
     block_size = 2000
@@ -24,7 +24,7 @@ def colnorms_squared(data,device):
 
 def  optimize_atom(data,dictionary,dict_idx,codes,unused_data,replaced_atoms,device):
     '''
-    Add description
+    Update dictionary atoms
     '''
     data_indices = torch.nonzero(codes[dict_idx,:],as_tuple=True)[0]
     curr_code = codes[dict_idx,data_indices]
@@ -50,17 +50,9 @@ def  optimize_atom(data,dictionary,dict_idx,codes,unused_data,replaced_atoms,dev
         curr_code = s_mat[0]*curr_code
     return (atom,curr_code,data_indices,unused_data,replaced_atoms)
 
-def compute_err(dictionary,codes,data):
-    '''
-    Add description
-    '''
-    recon_data = dictionary @ codes
-    err = torch.mean(torch.sum((recon_data - data) ** 2, axis=0) / torch.sum(data ** 2, axis=0))
-    return err
-
 def clear_dict(dictionary,codes,data,mu_thresh,unused_data,replaced_atoms):
     '''
-    Add description
+    Clear least used dictionary atoms
     '''
     use_thresh = 4  # at least this number of samples must use the atom to be kept
     dict_size = dictionary.shape[1]
@@ -80,7 +72,7 @@ def clear_dict(dictionary,codes,data,mu_thresh,unused_data,replaced_atoms):
 
 def replace_atoms(dictionary,codes,data,replaced_atoms,unused_data):
     '''
-    Add description
+    Replace unused dictionary atoms
     '''
     dict_size = dictionary.shape[1]
     for dict_idx in range(dict_size):
