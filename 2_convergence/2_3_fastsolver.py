@@ -6,9 +6,8 @@ import torch
 from torch import nn
 from torch import optim
 import matplotlib.pyplot as plt
-from scipy.io import loadmat
 from omp import run_omp
-from utils import clear_dict, normalize_dictionary, count_matching_atoms
+from utils import normalize_dictionary, count_matching_atoms
 from rearrange_dictionary import permute_scale_dictionary
 
 torch.manual_seed(0)
