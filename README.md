@@ -12,32 +12,42 @@ Follow these instructions to run the codes:
 
 Codes for three experiments in the paper are provided in three numbered directories. Run them in the following order from within the FastSolver_DictL directory:
 
-#### Experiment 1: uniqueness
+#### Experiment 1: uniqueness (Appendix D)
+Create data triplets
 ```
 python -m 1_uniqueness.1_1_create_data_triplets
 ```
+Perturb the dictionaries and compute sparse codes
 ```
 python -m 1_uniqueness.1_2_perturbation
 ```
-#### Experiment 2: convergence
+#### Experiment 2: convergence (Sec. 3.A)
+Create data triplets 
 Run generate_synthetic_dataset.m using MATLAB
+BL1: Online dictionary learning
 ```
 python -m 2_convergence.2_1_odl
 ```
+BL2: K-SVD
 ```
 python -m 2_convergence.2_2_ksvd
 ```
+Proposed FastSolver
 ```
 python -m 2_convergence.2_3_fastsolver
 ```
 #### Experiment 3: denoising
+Create noisy data
 Run generate_noisy_data.m using MATLAB
+Learn dictionary using BL1: K-SVD
 ```
 python -m 3_denoising.3_1_dictl_denoising_ksvd
 ```
+Learn dictionary using proposed FastSolver
 ```
 python -m 3_denoising.3_2_dictl_denoising_fastsolver
 ```
+Denoise image using learnt dictionay
 Run image_denoise.m using MATLAB
 
 
