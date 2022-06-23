@@ -1,6 +1,6 @@
 # Linear Neural Network as a Fast Solver for Dictionary Learning
 
-This repository contains codes for reproducing the results presented in the paper titled "Linear Neural Network as a Fast Solver for Dictionary Learning".
+This repository contains codes for the paper titled "Linear Neural Network as a Fast Solver for Dictionary Learning".
 
 Requirements: Anaconda with Python 3.8, MATLAB 2022
 
