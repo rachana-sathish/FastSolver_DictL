@@ -1,5 +1,6 @@
 '''
-Add link to original source
+Based on
+https://github.com/Ariel5/omp-parallel-gpu-python
 '''
 import torch
 

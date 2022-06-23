@@ -15,17 +15,17 @@ def main():
     Add perturbation to generation dictionary and compute sparse codes
     '''
     # Load data triplet
-    X_G = np.load('1_uniqueness/dataset/dataset.npy') # dataset
-    D_G = np.load('1_uniqueness/dataset/dictionary.npy') # dictionary
-    Z_G = np.load('1_uniqueness/dataset/sparse_code.npy') # sparse codes
+    X_G = np.load(os.path.join('1_uniqueness','dataset','dataset.npy')) # dataset
+    D_G = np.load(os.path.join('1_uniqueness','dataset','dictionary.npy')) # dictionary
+    Z_G = np.load(os.path.join('1_uniqueness','dataset','sparse_code.npy')) # sparse codes
 
     # Generate noise
     noise_level = 0.05
-    save_path = '1_uniqueness/results/'
+    save_path = os.path.join('1_uniqueness','results')
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
     noise = np.random.uniform(-noise_level,noise_level,size=(20,15))
-    np.save(save_path+'pertubation',noise)
+    np.save(os.path.join(save_path,'pertubation.npy'),noise)
 
     # Add noise to dictionary
     D_G_noisy = D_G + noise
@@ -39,7 +39,7 @@ def main():
     plt.yticks([])
     plt.xlabel('Atoms',fontsize=20)
     plt.colorbar()
-    plt.savefig(save_path+'D_G.png',transparent=True,bbox_inches='tight')
+    plt.savefig(os.path.join(save_path,'D_G.png'),transparent=True,bbox_inches='tight')
 
     # Visualize noisy data
     fig = plt.figure(figsize=[5,5])
@@ -48,7 +48,7 @@ def main():
     plt.yticks([])
     plt.xlabel('Atoms',fontsize=20)
     plt.colorbar()
-    plt.savefig(save_path+'D_G_noisy.png',transparent=True,bbox_inches='tight')
+    plt.savefig(os.path.join(save_path,'D_G_noisy.png'),transparent=True,bbox_inches='tight')
 
     # Visualize noise
     fig = plt.figure(figsize=[5,5])
@@ -57,11 +57,11 @@ def main():
     plt.yticks([])
     plt.xlabel('Atoms',fontsize=20)
     plt.colorbar()
-    plt.savefig(save_path+'noise.png',transparent=True,bbox_inches='tight')
+    plt.savefig(os.path.join(save_path,'noise.png'),transparent=True,bbox_inches='tight')
 
     # Find sparse codes with perturbed dictionary
     Z = OrthogonalMatchingPursuit(n_nonzero_coefs=10,normalize=False).fit(D_G_noisy,X_G).coef_
-    np.save(save_path+'detected_code',Z.T)
+    np.save(os.path.join(save_path,'detected_code.npy'),Z.T)
 
     # Compare detected sparse codes with original sparse codes
     plt.figure(figsize=[5,5])
@@ -69,7 +69,7 @@ def main():
     plt.xticks(list(np.arange(15)),list(np.arange(1,16)))
     plt.xlabel('Indices',fontsize=18)
     plt.ylabel('Coefficient',fontsize=18)
-    plt.savefig(save_path+'original_sparse_code.png',transparent=True,bbox_inches='tight')
+    plt.savefig(os.path.join(save_path,'original_sparse_code.png'),transparent=True,bbox_inches='tight')
 
     # Visualize sparse codes
     plt.figure(figsize=[5,5])
@@ -77,7 +77,7 @@ def main():
     plt.xticks(list(np.arange(15)),list(np.arange(1,16)))
     plt.xlabel('Indices',fontsize=18)
     plt.ylabel('Coefficient',fontsize=18)
-    plt.savefig(save_path+'detected_sparse_code.png',transparent=True,bbox_inches='tight')
+    plt.savefig(os.path.join(save_path,'detected_sparse_code.png'),transparent=True,bbox_inches='tight')
 
     # Difference in codes
     code_diff = measure_error(Z_G,Z.T)

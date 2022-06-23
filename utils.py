@@ -1,8 +1,6 @@
 import torch
-import numpy as np
 
 torch.manual_seed(0)
-np.random.seed(0)
 
 def normalize_dictionary(dictionary):
     if not isinstance(dictionary, torch.Tensor): 
@@ -76,20 +74,19 @@ def replace_atoms(dictionary,codes,data,replaced_atoms,unused_data):
     '''
     dict_size = dictionary.shape[1]
     for dict_idx in range(dict_size):
-        data_indices = list(np.nonzero(codes.T[dict_idx,:])[0])
+        data_indices = codes.T[dict_idx,:].nonzero()        
         curr_learnt_code = codes.T[dict_idx,data_indices]
         if len(data_indices) < 1:
             maxsignals = 5000
-            perm = np.random.permutation(len(unused_data))
+            perm = torch.randperm(len(unused_data))
             perm = list(perm[:min(maxsignals,len(perm))])
             error = sum((data[:,unused_data[perm]] -
                         dictionary@codes.T[:,unused_data[perm]])**2)
-            max_err_idx = np.argmax(error)
+            max_err_idx = torch.argmax(error,dim=1)
             atom = data[:,unused_data[perm[max_err_idx]]]
-            atom = atom/np.linalg.norm(atom)
-            curr_learnt_code = np.zeros(curr_learnt_code.shape)
-            idx_list = list(np.arange(0,perm[max_err_idx])) + \
-                        list(np.arange(perm[max_err_idx+1],len(perm)))
+            atom = atom/torch.linalg.norm(atom)
+            curr_learnt_code = torch.zeros(curr_learnt_code.shape)
+            idx_list = torch.cat((torch.arange(0,perm[max_err_idx]),torch.arange(perm[max_err_idx+1],len(perm))))
             unused_data = unused_data[idx_list]
             replaced_atoms[dict_idx] = 1
             dictionary[:,dict_idx] = atom

@@ -15,9 +15,9 @@ def main(path):
     # Save data triplets
     if not os.path.isdir(path):
         os.makedirs(path)
-    np.save(path+'dataset',X)
-    np.save(path+'dictionary',D)
-    np.save(path+'sparse_code',Z)
+    np.save(os.path.join(path,'dataset.npy'),X)
+    np.save(os.path.join(path,'dictionary.npy'),D)
+    np.save(os.path.join(path,'sparse_code.npy'),Z)
 
 if __name__ == "__main__":
-    main(path="1_uniqueness/dataset/")
+    main(path=os.path.join('1_uniqueness','dataset'))

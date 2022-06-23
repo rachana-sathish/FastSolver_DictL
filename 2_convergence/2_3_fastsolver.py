@@ -3,6 +3,7 @@ import time
 import scipy.io
 import numpy as np
 import torch
+import argparse
 from torch import nn
 from torch import optim
 import matplotlib.pyplot as plt
@@ -55,32 +56,31 @@ def update_net_weights(net, dictionary):
     return net
 
 def main():
-    num_trials = 50
     success_rate = 0.0
-    time_consumed = np.zeros(num_trials)
-    num_detected_atoms = np.zeros(num_trials)
-    for trial in range(1,num_trials+1):
-        print(f"Trial {trial}/{num_trials}")
-        data_load_path = '2_convergence/dataset/trial_'+str(trial)+'/'
-        init_dict_load_path = '2_convergence/results/ksvd_trial_'+str(trial)+'/'
-        save_path = '2_convergence/results/FastSolver_trial_'+str(trial)+'/'
+    time_consumed = np.zeros(NUM_TRIALS)
+    num_detected_atoms = np.zeros(NUM_TRIALS)
+    for trial in range(1,NUM_TRIALS+1):
+        print(f"Trial {trial}/{NUM_TRIALS}")
+        data_load_path = os.path.join('2_convergence','dataset','samples_'+str(NUM_SAMPLES)+'_trial_'+str(trial))
+        init_dict_load_path = os.path.join('2_convergence','results',DEVICE,'ksvd_'+'samples_'+str(NUM_SAMPLES)+'_trial_'+str(trial))        
+        save_path = os.path.join('2_convergence','results',DEVICE,'FastSolver_'+'samples_'+str(NUM_SAMPLES)+'trial_'+str(trial))
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
+
         # Load generation data dictionary and dataset
-        gen_data = torch.Tensor(scipy.io.loadmat(data_load_path+'gen_data.mat')['X']).float().to(DEVICE)
-        gen_dictionary_norm = torch.Tensor(scipy.io.loadmat(data_load_path+'gen_dictionary.mat')['D']).float()
+        gen_data = torch.Tensor(scipy.io.loadmat(os.path.join(data_load_path,'gen_data.mat'))['X']).float().to(DEVICE)
+        gen_dictionary_norm = torch.Tensor(scipy.io.loadmat(os.path.join(data_load_path,'gen_dictionary.mat'))['D']).float()
         dict_size = gen_dictionary_norm.shape[1]
        
         # Initialize dictionary (same as K-SVD)
-        init_dictionary_norm = torch.load(init_dict_load_path+'init_dict.pt')
-        # init_dictionary_norm = torch.Tensor(loadmat(init_dict_load_path+'init_dict.mat')['D']).to(DEVICE)
+        init_dictionary_norm = torch.load(os.path.join(init_dict_load_path,'init_dict.pt'))
 
         # Load initial dictionary as weights of ZBFCNN
         net = NetD().to(DEVICE)
         net = update_net_weights(net, init_dictionary_norm)
 
         net_lr = 1e-2 # Learning rate for NN
-        total_epochs = 100 # Epochs for training NN
+        total_epochs = 5 # Epochs for training NN
         total_rounds = 80 # No. of iterations of alternating minimization        
         optimizer = optim.Adam(net.parameters(),lr=net_lr)
         recon_criterion = nn.MSELoss()
@@ -99,8 +99,10 @@ def main():
             net = update_net_weights(net, learnt_dictionary_norm)
             # break
         
-        end_time = time.time() - start_time
-        time_consumed[trial-1] = end_time
+        end_time = time.time()
+        total_time = end_time - start_time
+        time_consumed[trial-1] = total_time
+        print(f"Time consumed: {total_time:.3f}s")
 
         # Save learnt dictionary and codes
         learnt_dictionary_norm_np = net.fc1.weight.data
@@ -110,8 +112,8 @@ def main():
         learnt_dictionary_norm = learnt_dictionary_norm_np.numpy()
         # Permute and re-scale dictionary atoms
         learnt_dictionary_norm = permute_scale_dictionary(learnt_dictionary_norm,gen_dictionary_norm.numpy())
-        np.save(save_path+'D_FastSolver',learnt_dictionary_norm)
-        np.save(save_path+'Z_FastSolver',learnt_codes.T)
+        np.save(os.path.join(save_path,'D_FastSolver.npy'),learnt_dictionary_norm)
+        np.save(os.path.join(save_path,'Z_FastSolver.npy'),learnt_codes.T)
 
         # Visualize dictionary   
         gen_dictionary_norm = normalize_dictionary(gen_dictionary_norm).numpy()
@@ -120,7 +122,7 @@ def main():
         dict_min_val = min(gen_dictionary_norm.min(), learnt_dictionary_norm.min())
         dict_max_val = max(gen_dictionary_norm.max(), learnt_dictionary_norm.max())
         fig, axes = plt.subplots(nrows=1, ncols=3,figsize=(12,4))
-        fig.suptitle('Dictionaries',fontsize=22, y=1.02)
+        fig.suptitle('Dictionaries',fontsize=22, y=0.8)
         img = axes[0].imshow(gen_dictionary_norm, vmin=dict_min_val, vmax=dict_max_val, cmap='jet')
         axes[0].set_title('Reference',fontsize=20)
         img = axes[1].imshow(learnt_dictionary_norm, vmin=dict_min_val, vmax=dict_max_val, cmap='jet')
@@ -129,7 +131,7 @@ def main():
         axes[2].set_title('Difference',fontsize=20)
         im_ratio = gen_dictionary_norm.shape[0]/gen_dictionary_norm.shape[1]
         fig.colorbar(img,fraction=0.047*im_ratio)
-        plt.savefig(save_path+'dictionary_comparison.png',transparent=True,bbox_inches='tight')
+        plt.savefig(os.path.join(save_path,'dictionary_comparison.png'),transparent=True,bbox_inches='tight')
         plt.close()
 
         net_learnt_wts = net.fc1.weight.data
@@ -145,7 +147,7 @@ def main():
         im_ratio = net_init_wts.shape[0]/net_init_wts.shape[1]
         plt.colorbar(fraction=0.047*im_ratio)
         plt.title('Change in Net weights',fontsize=20)
-        plt.savefig(save_path+'Net_wt_change.png',transparent=True,bbox_inches='tight')
+        plt.savefig(os.path.join(save_path,'Net_wt_change.png'),transparent=True,bbox_inches='tight')
         plt.close()
 
         # Compare learnt dictionary (D) with generation dictionary (gen_dictionary)
@@ -154,15 +156,19 @@ def main():
                                                         learnt_dictionary_norm)
         print(f"Trial: {trial} | Success rate: {100*num_detected_atoms[trial-1]/dict_size}")
         success_rate += 100*num_detected_atoms[trial-1]/dict_size
-    np.save('2_convergence/results/fastsolver_num_detected_atoms',num_detected_atoms)
-    np.save('2_convergence/results/fastsolver_time_consumed',time_consumed)
-    print(f"Average success rate: {success_rate/num_trials}")
+    np.save(os.path.join('2_convergence','results','fastsolver_num_detected_atoms.npy'),num_detected_atoms)
+    np.save(os.path.join('2_convergence','results','fastsolver_time_consumed.npy'),time_consumed)
+    print(f"Average success rate: {success_rate/NUM_TRIALS}")
     avg_time_consumed = np.mean(time_consumed)
     print(f"Avearge time: {avg_time_consumed//60} m {avg_time_consumed%60} s")
 
 if __name__ == "__main__":
-    if torch.cuda.is_available():
-        DEVICE = 'cuda'
-    else:
-        DEVICE = 'cpu'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--device',default='cuda',type=str)
+    parser.add_argument('--num_trials',default=50,type=int)
+    parser.add_argument('--num_samples',default=200000,type=int)
+    args = parser.parse_args()
+    DEVICE = args.device
+    NUM_TRIALS = args.num_trials
+    NUM_SAMPLES = args.num_samples
     main()
