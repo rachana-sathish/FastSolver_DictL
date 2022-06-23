@@ -8,7 +8,7 @@ Follow these instructions to run the codes:
   3. Move the codes within the folder "matlab_codes" to the folder of ksvd toolbox (ksvdbox13).
 
 Codes for three experiments in the paper are provided in three numbered directories. Run them in the following order from within the FastSolver_DictL directory:
-'''
+```
 python -m 1_uniqueness.1_1_create_data_triplets
-'''
+```
 
